@@ -6,7 +6,7 @@
   "publisher": "StepanKuzmin",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stepankuzmin/vscode-prose"
+    "url": "https://github.com/stepankuzmin/vscode-openprose"
   },
   "engines": {
     "vscode": "^1.74.0"

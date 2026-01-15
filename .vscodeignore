@@ -1,0 +1,10 @@
+.vscode/**
+.github/**
+node_modules/**
+src/**
+examples/**
+out/test/**
+.vscode-test.mjs
+*.map
+*.md
+tsconfig.json

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "OpenProse",
+  "scopeName": "source.prose",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#discretion-multiline" },
+    { "include": "#discretion-single" },
+    { "include": "#string-triple" },
+    { "include": "#string-single" },
+    { "include": "#agent-definition" },
+    { "include": "#block-definition" },
+    { "include": "#constants" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.prose",
+      "match": "#.*$"
+    },
+    "discretion-multiline": {
+      "name": "string.other.discretion.multiline.prose",
+      "begin": "\\*\\*\\*",
+      "end": "\\*\\*\\*",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.discretion.begin.prose" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.discretion.end.prose" }
+      }
+    },
+    "discretion-single": {
+      "name": "string.other.discretion.prose",
+      "match": "\\*\\*(?:[^*]|\\*(?!\\*))+\\*\\*"
+    },
+    "string-triple": {
+      "name": "string.quoted.triple.prose",
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.prose" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.prose" }
+      },
+      "patterns": [
+        { "include": "#string-escape" },
+        { "include": "#string-interpolation" }
+      ]
+    },
+    "string-single": {
+      "name": "string.quoted.double.prose",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.prose" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.prose" }
+      },
+      "patterns": [
+        { "include": "#string-escape" },
+        { "include": "#string-interpolation" }
+      ]
+    },
+    "string-escape": {
+      "name": "constant.character.escape.prose",
+      "match": "\\\\[\\\\\"nt]"
+    },
+    "string-interpolation": {
+      "name": "constant.other.placeholder.prose",
+      "match": "\\{[a-zA-Z_][a-zA-Z0-9_]*\\}"
+    },
+    "agent-definition": {
+      "match": "^\\s*agent\\s+([a-zA-Z_][a-zA-Z0-9_-]*)\\s*:",
+      "captures": {
+        "1": { "name": "entity.name.type.agent.prose" }
+      }
+    },
+    "block-definition": {
+      "match": "^\\s*block\\s+([a-zA-Z_][a-zA-Z0-9_-]*)(?:\\([^)]*\\))?\\s*:",
+      "captures": {
+        "1": { "name": "entity.name.function.block.prose" }
+      }
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.model.prose",
+          "match": "\\b(sonnet|opus|haiku)\\b"
+        },
+        {
+          "name": "constant.language.permission.prose",
+          "match": "\\b(allow|deny)\\b"
+        },
+        {
+          "name": "constant.language.backoff.prose",
+          "match": "\\b(none|linear|exponential)\\b"
+        },
+        {
+          "name": "constant.numeric.integer.prose",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          cache: 'npm'
+          node-version: 'latest'
+          cache-dependency-path: 'package-lock.json'
+
+      - run: npm ci
+      - run: xvfb-run -a npm test
+      - run: npm run package
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          cache: 'npm'
+          node-version: 'latest'
+          cache-dependency-path: 'package-lock.json'
+
+      - run: npm ci
+      - run: npm run package
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes "Automated release for ${{ github.ref_name }}" \
+            *.vsix
+
+      - name: Publish to Marketplace
+        run: npx vsce publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

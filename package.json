@@ -1,0 +1,57 @@
+{
+  "name": "openprose",
+  "displayName": "OpenProse",
+  "description": "Minimal syntax highlighting for OpenProse (.prose) files",
+  "version": "0.0.1",
+  "publisher": "StepanKuzmin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stepankuzmin/vscode-prose"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "prose",
+        "aliases": [
+          "OpenProse",
+          "prose"
+        ],
+        "extensions": [
+          ".prose"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "prose",
+        "scopeName": "source.prose",
+        "path": "./syntaxes/prose.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "vscode-test",
+    "package": "npm run compile && vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.74.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -60,11 +60,12 @@ jobs:
           fi
 
       - name: Publish to Marketplace
-        if: ${{ secrets.VSCE_PAT != '' }}
-        run: npx vsce publish
+        continue-on-error: true
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "⚠️ VSCE_PAT secret not configured, skipping marketplace publishing"
+            exit 0
+          fi
+          npx vsce publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-      - name: Skip Marketplace Publishing
-        if: ${{ secrets.VSCE_PAT == '' }}
-        run: echo "⚠️ VSCE_PAT secret not configured, skipping marketplace publishing"

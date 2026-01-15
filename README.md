@@ -16,12 +16,13 @@ Syntax highlighting for [OpenProse](https://github.com/openprose/prose) files.
 
 ## Installation
 
-1. Clone this repo
-2. Open in VS Code
-3. Press F5 to launch Extension Development Host
-4. Open any `.prose` file
+**VS Code Marketplace:**
+Install from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=StepanKuzmin.openprose)
 
-## Packaging
+**Manual Install:**
+Download `.vsix` from [GitHub Releases](https://github.com/stepankuzmin/vscode-openprose/releases) and install via `Extensions: Install from VSIX...` command.
+
+## Development
 
 ```bash
 npm install

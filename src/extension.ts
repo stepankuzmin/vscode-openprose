@@ -5,29 +5,19 @@ function findEnclosingBlock(document: vscode.TextDocument, position: vscode.Posi
   const offset = document.offsetAt(position);
   const blockPattern = /^(\s*block\s+\w+\s*\()([^)]*)(\)\s*:)/gm;
 
-  const blocks: { start: number; end: number; paramsStr: string; prefixLength: number }[] = [];
+  // Blocks are sequential in document order. The enclosing block is the last one
+  // whose header appears before the cursor position.
+  let result: { start: number; paramsStr: string; prefixLength: number } | null = null;
   let match;
   while ((match = blockPattern.exec(text)) !== null) {
-    blocks.push({
+    if (match.index > offset) break;
+    result = {
       start: match.index,
-      end: text.length,
       paramsStr: match[2],
       prefixLength: match[1].length
-    });
+    };
   }
-
-  for (let i = 0; i < blocks.length; i++) {
-    if (i + 1 < blocks.length) {
-      blocks[i].end = blocks[i + 1].start;
-    }
-  }
-
-  for (const block of blocks) {
-    if (offset >= block.start && offset < block.end) {
-      return block;
-    }
-  }
-  return null;
+  return result;
 }
 
 function findVarDefinition(document: vscode.TextDocument, name: string, position?: vscode.Position): vscode.Location | null {
@@ -92,23 +82,46 @@ function findReferences(document: vscode.TextDocument, name: string): vscode.Ran
   const text = document.getText();
   const ranges: vscode.Range[] = [];
 
-  const patterns: [RegExp, (m: RegExpExecArray) => number][] = [
-    [new RegExp(`\\{(${name})\\}`, 'g'), m => m.index + 1],
-    [new RegExp(`^\\s*(?:let|const)\\s+(${name})\\s*=`, 'gm'), m => m.index + m[0].lastIndexOf(name)],
-    [new RegExp(`^\\s*(?:parallel\\s+)?for\\s+(${name})(?:\\s*,|\\s+in)`, 'gm'), m => m.index + m[0].indexOf(name)],
-    [new RegExp(`\\bin\\s+(${name})\\s*:`, 'g'), m => m.index + m[0].lastIndexOf(name)],
-    [new RegExp(`^\\s*(${name})\\s*=\\s*session\\b`, 'gm'), m => m.index + m[0].indexOf(name)],
-    [new RegExp(`\\bcontext:\\s*(?:[\\[{]\\s*)?(?:[\\w,\\s]*,\\s*)?(${name})\\b`, 'g'), m => m.index + m[0].lastIndexOf(name)],
-    [new RegExp(`^\\s*agent\\s+(${name})\\s*:`, 'gm'), m => m.index + m[0].indexOf(name)],
-    [new RegExp(`\\bsession:\\s*(${name})\\b`, 'g'), m => m.index + m[0].lastIndexOf(name)],
-    [new RegExp(`^\\s*block\\s+(${name})(?:\\([^)]*\\))?\\s*:`, 'gm'), m => m.index + m[0].indexOf(name)],
-    [new RegExp(`\\bdo\\s+(${name})\\b`, 'g'), m => m.index + m[0].lastIndexOf(name)],
+  // Each pattern finds references in a different syntactic context.
+  // nameOffset calculates where the name starts within the match, since JS regex
+  // doesn't provide capture group positions directly.
+  const patterns: { regex: RegExp; nameOffset: (m: RegExpExecArray) => number }[] = [
+    // {varname} interpolation - skip opening brace
+    { regex: new RegExp(`\\{(${name})\\}`, 'g'),
+      nameOffset: () => 1 },
+    // let x = or const x = (lastIndexOf avoids matching 'let' if name is 'let')
+    { regex: new RegExp(`^\\s*(?:let|const)\\s+(${name})\\s*=`, 'gm'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // for x in or parallel for x, i in
+    { regex: new RegExp(`^\\s*(?:parallel\\s+)?for\\s+(${name})(?:\\s*,|\\s+in)`, 'gm'),
+      nameOffset: m => m[0].indexOf(name) },
+    // in sessionname: (parallel for target)
+    { regex: new RegExp(`\\bin\\s+(${name})\\s*:`, 'g'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // x = session (session assignment)
+    { regex: new RegExp(`^\\s*(${name})\\s*=\\s*session\\b`, 'gm'),
+      nameOffset: m => m[0].indexOf(name) },
+    // context: x or context: [a, x] or context: {a, x}
+    { regex: new RegExp(`\\bcontext:\\s*(?:[\\[{]\\s*)?(?:[\\w,\\s]*,\\s*)?(${name})\\b`, 'g'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // agent agentname:
+    { regex: new RegExp(`^\\s*agent\\s+(${name})\\s*:`, 'gm'),
+      nameOffset: m => m[0].indexOf(name) },
+    // session: agentname
+    { regex: new RegExp(`\\bsession:\\s*(${name})\\b`, 'g'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // block blockname: or block blockname(params):
+    { regex: new RegExp(`^\\s*block\\s+(${name})(?:\\([^)]*\\))?\\s*:`, 'gm'),
+      nameOffset: m => m[0].indexOf(name) },
+    // do blockname
+    { regex: new RegExp(`\\bdo\\s+(${name})\\b`, 'g'),
+      nameOffset: m => m[0].lastIndexOf(name) },
   ];
 
-  for (const [pattern, getStart] of patterns) {
+  for (const { regex, nameOffset } of patterns) {
     let match;
-    while ((match = pattern.exec(text)) !== null) {
-      const start = getStart(match);
+    while ((match = regex.exec(text)) !== null) {
+      const start = match.index + nameOffset(match);
       ranges.push(new vscode.Range(document.positionAt(start), document.positionAt(start + name.length)));
     }
   }
@@ -138,7 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
       const word = document.getText(wordRange);
       const beforeWord = line.slice(0, wordRange.start.character);
 
-      const interpolationRange = document.getWordRangeAtPosition(position, /\{[a-zA-Z_][a-zA-Z0-9_]*\}/);
+      const interpolationRange = document.getWordRangeAtPosition(position, /\{[a-zA-Z_][a-zA-Z0-9_-]*\}/);
       if (interpolationRange) {
         return findVarDefinition(document, document.getText(interpolationRange).slice(1, -1), position);
       }
@@ -156,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
       const wordRange = document.getWordRangeAtPosition(position, /[a-zA-Z_][a-zA-Z0-9_-]*/);
       if (!wordRange) return null;
 
-      const interpolationRange = document.getWordRangeAtPosition(position, /\{[a-zA-Z_][a-zA-Z0-9_]*\}/);
+      const interpolationRange = document.getWordRangeAtPosition(position, /\{[a-zA-Z_][a-zA-Z0-9_-]*\}/);
       const word = interpolationRange
         ? document.getText(interpolationRange).slice(1, -1)
         : document.getText(wordRange);

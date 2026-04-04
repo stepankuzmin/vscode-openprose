@@ -10,6 +10,11 @@
     { "include": "#string-single" },
     { "include": "#agent-definition" },
     { "include": "#block-definition" },
+    { "include": "#input-declaration" },
+    { "include": "#output-declaration" },
+    { "include": "#variable-declaration" },
+    { "include": "#keywords" },
+    { "include": "#properties" },
     { "include": "#constants" }
   ],
   "repository": {
@@ -18,7 +23,7 @@
       "match": "#.*$"
     },
     "discretion-multiline": {
-      "name": "string.other.discretion.multiline.prose",
+      "name": "markup.italic.discretion.multiline.prose",
       "begin": "\\*\\*\\*",
       "end": "\\*\\*\\*",
       "beginCaptures": {
@@ -29,7 +34,7 @@
       }
     },
     "discretion-single": {
-      "name": "string.other.discretion.prose",
+      "name": "markup.italic.discretion.prose",
       "match": "\\*\\*(?:[^*]|\\*(?!\\*))+\\*\\*"
     },
     "string-triple": {
@@ -71,19 +76,64 @@
       "match": "\\{[a-zA-Z_][a-zA-Z0-9_-]*\\}"
     },
     "agent-definition": {
-      "match": "^\\s*agent\\s+([a-zA-Z_][a-zA-Z0-9_-]*)\\s*:",
+      "match": "^(\\s*)(agent)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*:)",
       "captures": {
-        "1": { "name": "entity.name.type.agent.prose" }
+        "2": { "name": "keyword.control.agent.prose" },
+        "4": { "name": "entity.name.type.agent.prose" }
       }
     },
     "block-definition": {
-      "match": "^\\s*block\\s+([a-zA-Z_][a-zA-Z0-9_-]*)(?:\\([^)]*\\))?\\s*:",
+      "match": "^(\\s*)(block)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(?:\\([^)]*\\))?(\\s*:)",
       "captures": {
-        "1": { "name": "entity.name.function.block.prose" }
+        "2": { "name": "keyword.control.block.prose" },
+        "4": { "name": "entity.name.function.block.prose" }
+      }
+    },
+    "input-declaration": {
+      "match": "^(\\s*)(input)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*:)",
+      "captures": {
+        "2": { "name": "keyword.control.input.prose" },
+        "4": { "name": "variable.other.input.prose" }
+      }
+    },
+    "output-declaration": {
+      "match": "^(\\s*)(output)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*=)",
+      "captures": {
+        "2": { "name": "keyword.control.output.prose" },
+        "4": { "name": "variable.other.output.prose" }
+      }
+    },
+    "variable-declaration": {
+      "match": "^(\\s*)(let|const)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)",
+      "captures": {
+        "2": { "name": "keyword.control.declaration.prose" },
+        "4": { "name": "variable.other.prose" }
+      }
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.flow.prose",
+          "match": "\\b(if|elif|else|for|parallel|loop|until|do|in|choice|option|try|catch|finally|throw|include)\\b"
+        },
+        {
+          "name": "keyword.control.session.prose",
+          "match": "\\b(session|resume)\\b"
+        }
+      ]
+    },
+    "properties": {
+      "match": "^(\\s*)(model|prompt|context|tools|persist|retry|backoff|session|resume)(\\s*:)",
+      "captures": {
+        "2": { "name": "support.type.property-name.prose" }
       }
     },
     "constants": {
       "patterns": [
+        {
+          "name": "constant.language.boolean.prose",
+          "match": "\\b(true|false)\\b"
+        },
         {
           "name": "constant.language.model.prose",
           "match": "\\b(sonnet|opus|haiku)\\b"

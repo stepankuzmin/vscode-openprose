@@ -41,7 +41,7 @@ function findVarDefinition(document: vscode.TextDocument, name: string, position
   const patterns = [
     new RegExp(`^(\\s*(?:let|const)\\s+)(${name})(\\s*=)`, 'm'),
     new RegExp(`^(\\s*(?:parallel\\s+)?for\\s+)(${name})(?:\\s*,\\s*\\w+)?\\s+in\\s+`, 'm'),
-    new RegExp(`^(\\s*)(${name})(\\s*=\\s*session\\b)`, 'm'),
+    new RegExp(`^(\\s*)(${name})(\\s*=\\s*(?:session|resume)\\b)`, 'm'),
   ];
 
   for (const pattern of patterns) {
@@ -98,8 +98,8 @@ function findReferences(document: vscode.TextDocument, name: string): vscode.Ran
     // in sessionname: (parallel for target)
     { regex: new RegExp(`\\bin\\s+(${name})\\s*:`, 'g'),
       nameOffset: m => m[0].lastIndexOf(name) },
-    // x = session (session assignment)
-    { regex: new RegExp(`^\\s*(${name})\\s*=\\s*session\\b`, 'gm'),
+    // x = session or x = resume (session/resume assignment)
+    { regex: new RegExp(`^\\s*(${name})\\s*=\\s*(?:session|resume)\\b`, 'gm'),
       nameOffset: m => m[0].indexOf(name) },
     // context: x or context: [a, x] or context: {a, x}
     { regex: new RegExp(`\\bcontext:\\s*(?:[\\[{]\\s*)?(?:[\\w,\\s]*,\\s*)?(${name})\\b`, 'g'),
@@ -107,8 +107,8 @@ function findReferences(document: vscode.TextDocument, name: string): vscode.Ran
     // agent agentname:
     { regex: new RegExp(`^\\s*agent\\s+(${name})\\s*:`, 'gm'),
       nameOffset: m => m[0].indexOf(name) },
-    // session: agentname
-    { regex: new RegExp(`\\bsession:\\s*(${name})\\b`, 'g'),
+    // session: agentname or resume: agentname
+    { regex: new RegExp(`\\b(?:session|resume):\\s*(${name})\\b`, 'g'),
       nameOffset: m => m[0].lastIndexOf(name) },
     // block blockname: or block blockname(params):
     { regex: new RegExp(`^\\s*block\\s+(${name})(?:\\([^)]*\\))?\\s*:`, 'gm'),
@@ -155,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (interpolationRange) {
         return findVarDefinition(document, document.getText(interpolationRange).slice(1, -1), position);
       }
-      if (/session:\s*$/.test(beforeWord)) return findAgentDefinition(document, word);
+      if (/(?:session|resume):\s*$/.test(beforeWord)) return findAgentDefinition(document, word);
       if (/\bdo\s+$/.test(beforeWord)) return findBlockDefinition(document, word);
       if (/\bin\s+$/.test(beforeWord)) return findVarDefinition(document, word, position);
       if (/\bcontext:\s*(?:[\[{]\s*)?(?:[\w,\s]*,\s*)?$/.test(beforeWord)) return findVarDefinition(document, word, position);

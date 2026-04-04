@@ -42,6 +42,8 @@ function findVarDefinition(document: vscode.TextDocument, name: string, position
     new RegExp(`^(\\s*(?:let|const)\\s+)(${name})(\\s*=)`, 'm'),
     new RegExp(`^(\\s*(?:parallel\\s+)?for\\s+)(${name})(?:\\s*,\\s*\\w+)?\\s+in\\s+`, 'm'),
     new RegExp(`^(\\s*)(${name})(\\s*=\\s*(?:session|resume)\\b)`, 'm'),
+    new RegExp(`^(\\s*input\\s+)(${name})(\\s*:)`, 'm'),
+    new RegExp(`^(\\s*output\\s+)(${name})(\\s*=)`, 'm'),
   ];
 
   for (const pattern of patterns) {
@@ -115,6 +117,12 @@ function findReferences(document: vscode.TextDocument, name: string): vscode.Ran
       nameOffset: m => m[0].indexOf(name) },
     // do blockname
     { regex: new RegExp(`\\bdo\\s+(${name})\\b`, 'g'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // input varname:
+    { regex: new RegExp(`^\\s*input\\s+(${name})\\s*:`, 'gm'),
+      nameOffset: m => m[0].lastIndexOf(name) },
+    // output varname =
+    { regex: new RegExp(`^\\s*output\\s+(${name})\\s*=`, 'gm'),
       nameOffset: m => m[0].lastIndexOf(name) },
   ];
 

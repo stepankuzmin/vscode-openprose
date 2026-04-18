@@ -2,7 +2,7 @@
   "name": "openprose",
   "displayName": "OpenProse",
   "description": "Minimal syntax highlighting for OpenProse (.prose) files",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "StepanKuzmin",
   "repository": {
     "type": "git",

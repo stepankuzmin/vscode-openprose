@@ -138,6 +138,57 @@ block second(name):
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
+  test('Definition provider: resume agent reference', async function() {
+    this.timeout(10000);
+
+    const content = `agent captain:
+  model: opus
+
+task_context = resume: captain
+  prompt: "Synthesize context"`;
+
+    const doc = await vscode.workspace.openTextDocument({ language: 'prose', content });
+    await vscode.window.showTextDocument(doc);
+
+    // Position on "captain" after "resume: " - line 3, character 23
+    const position = new vscode.Position(3, 23);
+    const locations = await vscode.commands.executeCommand<vscode.Location[]>(
+      'vscode.executeDefinitionProvider',
+      doc.uri,
+      position
+    );
+
+    assert.ok(locations && locations.length > 0, 'Should find agent definition from resume:');
+    assert.strictEqual(locations[0].range.start.line, 0, 'Should jump to agent definition line');
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('Definition provider: input declaration', async function() {
+    this.timeout(10000);
+
+    const content = `input repo_path: "Path to the repo"
+
+agent worker:
+  prompt: """You work in: {repo_path}"""`;
+
+    const doc = await vscode.workspace.openTextDocument({ language: 'prose', content });
+    await vscode.window.showTextDocument(doc);
+
+    // Position on {repo_path} interpolation - line 3, character 30
+    const position = new vscode.Position(3, 30);
+    const locations = await vscode.commands.executeCommand<vscode.Location[]>(
+      'vscode.executeDefinitionProvider',
+      doc.uri,
+      position
+    );
+
+    assert.ok(locations && locations.length > 0, 'Should find input definition');
+    assert.strictEqual(locations[0].range.start.line, 0, 'Should jump to input declaration line');
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
   test('Document highlight provider', async function() {
     this.timeout(10000);
 

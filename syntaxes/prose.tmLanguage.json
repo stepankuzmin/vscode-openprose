@@ -6,10 +6,17 @@
     { "include": "#comment" },
     { "include": "#discretion-multiline" },
     { "include": "#discretion-single" },
-    { "include": "#string-triple" },
-    { "include": "#string-single" },
     { "include": "#agent-definition" },
     { "include": "#block-definition" },
+    { "include": "#input-declaration" },
+    { "include": "#output-declaration" },
+    { "include": "#variable-declaration" },
+    { "include": "#catch-declaration" },
+    { "include": "#session-agent-reference" },
+    { "include": "#properties" },
+    { "include": "#keywords" },
+    { "include": "#string-triple" },
+    { "include": "#string-single" },
     { "include": "#constants" }
   ],
   "repository": {
@@ -18,7 +25,7 @@
       "match": "#.*$"
     },
     "discretion-multiline": {
-      "name": "string.other.discretion.multiline.prose",
+      "name": "markup.italic.discretion.multiline.prose",
       "begin": "\\*\\*\\*",
       "end": "\\*\\*\\*",
       "beginCaptures": {
@@ -29,7 +36,7 @@
       }
     },
     "discretion-single": {
-      "name": "string.other.discretion.prose",
+      "name": "markup.italic.discretion.prose",
       "match": "\\*\\*(?:[^*]|\\*(?!\\*))+\\*\\*"
     },
     "string-triple": {
@@ -71,19 +78,71 @@
       "match": "\\{[a-zA-Z_][a-zA-Z0-9_-]*\\}"
     },
     "agent-definition": {
-      "match": "^\\s*agent\\s+([a-zA-Z_][a-zA-Z0-9_-]*)\\s*:",
+      "match": "^(\\s*)(agent)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*:)",
       "captures": {
-        "1": { "name": "entity.name.type.agent.prose" }
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "entity.name.type.agent.prose" }
       }
     },
     "block-definition": {
-      "match": "^\\s*block\\s+([a-zA-Z_][a-zA-Z0-9_-]*)(?:\\([^)]*\\))?\\s*:",
+      "match": "^(\\s*)(block)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(?:\\([^)]*\\))?(\\s*:)",
       "captures": {
-        "1": { "name": "entity.name.function.block.prose" }
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "entity.name.function.block.prose" }
       }
+    },
+    "input-declaration": {
+      "match": "^(\\s*)(input)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*:)",
+      "captures": {
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "variable.other.input.prose" }
+      }
+    },
+    "output-declaration": {
+      "match": "^(\\s*)(output)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*=)",
+      "captures": {
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "variable.other.output.prose" }
+      }
+    },
+    "variable-declaration": {
+      "match": "^(\\s*)(let|const)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)",
+      "captures": {
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "variable.other.prose" }
+      }
+    },
+    "catch-declaration": {
+      "match": "^(\\s*)(catch)(\\s+)(as)(\\s+)([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*:)",
+      "captures": {
+        "2": { "name": "support.function.prose" },
+        "4": { "name": "support.function.prose" },
+        "6": { "name": "variable.other.prose" }
+      }
+    },
+    "session-agent-reference": {
+      "match": "\\b(session|resume)(\\s*:\\s*)([a-zA-Z_][a-zA-Z0-9_-]*)",
+      "captures": {
+        "1": { "name": "support.function.prose" },
+        "3": { "name": "entity.name.type.agent.prose" }
+      }
+    },
+    "properties": {
+      "match": "^(\\s*)(model|prompt|context|tools|persist|retry|backoff)(\\s*:)",
+      "captures": {
+        "2": { "name": "entity.name.tag.prose" }
+      }
+    },
+    "keywords": {
+      "name": "support.function.prose",
+      "match": "\\b(if|elif|else|for|parallel|loop|until|do|in|as|choice|option|try|catch|finally|throw|include|session|resume)\\b"
     },
     "constants": {
       "patterns": [
+        {
+          "name": "constant.language.boolean.prose",
+          "match": "\\b(true|false)\\b"
+        },
         {
           "name": "constant.language.model.prose",
           "match": "\\b(sonnet|opus|haiku)\\b"
